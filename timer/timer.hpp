@@ -27,12 +27,10 @@
 #include <chrono>
 #include <string>
 
-using namespace std;
-using namespace chrono;
 
-// Function to scale and format the time measurement
-inline pair<double, string> time_scaler(double time_res) {
-    string time_unit = " [s]";
+// scale and format the time measurement
+inline std::pair<double, std::string> time_scaler(double time_res) {
+    std::string time_unit = " [s]";
     if (time_res < 0.5 && time_res > 1e-3) {
         time_res *= 1e3;
         time_unit = " [ms]";
@@ -49,7 +47,7 @@ inline pair<double, string> time_scaler(double time_res) {
 }
 
  
-/*Function to measure time of a code block using a lambda or any callable
+/* Measure time of a code block using a lambda or any callable
 *  Example:
     // Define the lambda to wrap the function call
     auto func = [&]() {
@@ -60,15 +58,17 @@ inline pair<double, string> time_scaler(double time_res) {
     timeIt("matTranspose", func, 10);
 */
 template <typename Func>
-void timeIt(const string &funcName, Func &&func, int numIters = 100) {
+void timeIt(const std::string &funcName, Func &&func, int numIters = 100) {
     
-    auto start = steady_clock::now();
+    auto start = std::chrono::steady_clock::now();
     for (int i = 0; i < numIters; i++) {
         func();  // Execute the code block (lambda or callable) 
     }
-    auto end = steady_clock::now();
-    auto delta_time = duration_cast<duration<double>>(end - start);
-    pair<double, string> avgDuration = time_scaler(delta_time.count() / numIters);
+    auto end = std::chrono::steady_clock::now();
+    auto delta_time = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
+    std::pair<double, std::string> avgDuration = time_scaler(delta_time.count() / numIters);
 
-    cout << "\n\nFunction or code section'" << funcName << "' took " << avgDuration.first << avgDuration.second << endl;
+    std::cout << "\n\nFunction or code section '" << 
+        funcName << "' took " << avgDuration.first << avgDuration.second 
+        << "\nin average over " << numIters << " iterations." << std::endl;
 }
