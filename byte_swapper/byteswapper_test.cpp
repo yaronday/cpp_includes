@@ -39,14 +39,23 @@ static_assert(byteswapper(static_cast<uint16_t>(0x1234)) == 0x3412, "16-bit stan
 static_assert(byteswapper(static_cast<uint16_t>(0xFFFF)) == 0xFFFF, "16-bit max failed");
 
 // 32-bit tests
-static_assert(byteswapper(static_cast<uint32_t>(0x00000000)) == 0x00000000, "32-bit zero failed");
+static constexpr uint32_t allZeros32 = 0x00000000; 
+static constexpr uint32_t allOnes32 =  0xFFFFFFFF;
+static_assert(byteswapper(static_cast<uint32_t>(allZeros32)) == allZeros32, "32-bit zero failed");
 static_assert(byteswapper(static_cast<uint32_t>(0x12345678)) == 0x78563412, "32-bit standard failed");
-static_assert(byteswapper(static_cast<uint32_t>(0xFFFFFFFF)) == 0xFFFFFFFF, "32-bit max failed");
+static_assert(byteswapper(static_cast<uint32_t>(allOnes32)) == allOnes32, "32-bit max failed");
 
 // 64-bit tests
-static_assert(byteswapper(static_cast<uint64_t>(0x0000000000000000ULL)) == 0x0000000000000000ULL, "64-bit zero failed");
-static_assert(byteswapper(static_cast<uint64_t>(0x123456789ABCDEF0ULL)) == 0xF0DEBC9A78563412ULL, "64-bit standard failed");
-static_assert(byteswapper(static_cast<uint64_t>(0xFFFFFFFFFFFFFFFFULL)) == 0xFFFFFFFFFFFFFFFFULL, "64-bit max failed");
+static constexpr uint64_t allZeros64 = 0x0000000000000000ULL; 
+static constexpr uint64_t allOnes64 =  0xFFFFFFFFFFFFFFFFULL;
+
+static constexpr uint64_t original = 0x123456789ABCDEF0ULL;
+static constexpr uint64_t first = byteswapper(original);
+static constexpr uint64_t second = byteswapper(first);
+static_assert(byteswapper(static_cast<uint64_t>(allZeros64)) == allZeros64, "64-bit zero failed");
+static_assert(first == 0xF0DEBC9A78563412ULL, "64-bit standard failed");
+static_assert(second == original, "64-bit standard failed"); 
+static_assert(byteswapper(static_cast<uint64_t>(allOnes64)) == allOnes64, "64-bit max failed");
 
 int main() {
     return 0;
