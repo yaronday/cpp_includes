@@ -52,7 +52,7 @@ static void naive_transpose(const Matrix& src, Matrix& dst, size_t N) {
 static void blocked_transpose(const Matrix& src, Matrix& dst, size_t N, size_t block_size = 64) {
     for (size_t i = 0; i < N; i += block_size) {
         for (size_t j = 0; j < N; j += block_size) {
-            // Transpose the current block
+            // Transpose the current block, taking advantage of the fact that N % block_size == 0 
             for (size_t ii = i; ii < i + block_size; ++ii) {
                 for (size_t jj = j; jj < j + block_size; ++jj) {
                     dst[jj][ii] = src[ii][jj];
