@@ -50,16 +50,28 @@ static void naive_transpose(const Matrix& src, Matrix& dst, size_t N) {
 // Processes the matrix in sub-blocks to keep data in the L1/L2 cache,
 // significantly minimizing page faults and cache thrashing.
 static void blocked_transpose(const Matrix& src, Matrix& dst, size_t N, size_t block_size = 64) {
+    uint8_t micro_kernel_size = 8; 
     for (size_t i = 0; i < N; i += block_size) {
         for (size_t j = 0; j < N; j += block_size) {
             // Transpose the current block, taking advantage of the fact that N % block_size == 0 
-            for (size_t ii = i; ii < i + block_size; ++ii) {
-                for (size_t jj = j; jj < j + block_size; ++jj) {
-                    dst[jj][ii] = src[ii][jj];
+            // optimized register tiling 
+            for (size_t ii = i; ii < i + block_size; ii += micro_kernel_size) {
+                for (size_t jj = j; jj < j + block_size; jj += micro_kernel_size) {
+                    #pragma unroll(micro_kernel_size) 
+                    for (size_t r = 0; r < micro_kernel_size; ++r) {
+                        #pragma unroll(micro_kernel_size)
+                        for (size_t c = 0; c < micro_kernel_size; ++c) {
+                            dst[jj + c][ii + r] = src[ii + r][jj + c];
+                        }
+                    }
                 }
             }
         }
     }
+}
+
+static bool verify_matrices(const Matrix& mat_a, const Matrix& mat_b) {
+    return mat_a == mat_b;
 }
 
 // ---------------------------------------------------------
@@ -94,6 +106,13 @@ int main() {
         blocked_transpose(src, dst_blocked, N);
         };
     timeIt("Blocked Transpose", runBlocked, iters, printout, prec);
+
+    if (verify_matrices(dst_naive, dst_blocked)) {
+        cout << "\n[SUCCESS] Matrices match perfectly!\n";
+    }
+    else {
+        cerr << "\n[ERROR] Matrix mismatch detected! Optimization logic is flawed.\n";
+    }
 
     return 0;
 }
