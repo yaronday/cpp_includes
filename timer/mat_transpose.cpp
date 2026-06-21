@@ -24,9 +24,10 @@
 #include "timer.hpp" 
 #include <vector>
 
+using namespace std; 
 
 
-using Matrix = std::vector<std::vector<int>>;
+using Matrix = vector<vector<int>>;
 
 // Simple matrix transpose operation, juxtaposing naive approach vs optimized 
 
@@ -35,7 +36,7 @@ using Matrix = std::vector<std::vector<int>>;
 // ---------------------------------------------------------
 // Std. traversal - suffers from frequent cache misses 
 // on the destination matrix for large sizes.
-static void naiveTranspose(const Matrix& src, Matrix& dst, size_t N) {
+static void naive_transpose(const Matrix& src, Matrix& dst, size_t N) {
     for (size_t i = 0; i < N; ++i) {
         for (size_t j = 0; j < N; ++j) {
             dst[j][i] = src[i][j];
@@ -48,12 +49,12 @@ static void naiveTranspose(const Matrix& src, Matrix& dst, size_t N) {
 // ---------------------------------------------------------
 // Processes the matrix in sub-blocks to keep data in the L1/L2 cache,
 // significantly minimizing page faults and cache thrashing.
-static void blockedTranspose(const Matrix& src, Matrix& dst, size_t N, size_t blockSize = 64) {
-    for (size_t i = 0; i < N; i += blockSize) {
-        for (size_t j = 0; j < N; j += blockSize) {
+static void blocked_transpose(const Matrix& src, Matrix& dst, size_t N, size_t block_size = 64) {
+    for (size_t i = 0; i < N; i += block_size) {
+        for (size_t j = 0; j < N; j += block_size) {
             // Transpose the current block
-            for (size_t ii = i; ii < std::min(i + blockSize, N); ++ii) {
-                for (size_t jj = j; jj < std::min(j + blockSize, N); ++jj) {
+            for (size_t ii = i; ii < i + block_size; ++ii) {
+                for (size_t jj = j; jj < j + block_size; ++jj) {
                     dst[jj][ii] = src[ii][jj];
                 }
             }
@@ -65,33 +66,33 @@ static void blockedTranspose(const Matrix& src, Matrix& dst, size_t N, size_t bl
 // Main Execution & Benchmarking
 // ---------------------------------------------------------
 int main() {
-    constexpr size_t N = 16 * 1024; 
-    constexpr int iters = 10; 
+    constexpr size_t N = 1024 << 3; 
+    constexpr uint16_t iters = 10; 
 
-    Matrix src(N, std::vector<int>(N));
-    Matrix dst_naive(N, std::vector<int>(N, 0));
-    Matrix dst_blocked(N, std::vector<int>(N, 0));
+    constexpr bool printout = false; 
+    constexpr uint16_t prec = 5; 
 
-    // Populate with dummy data
+    Matrix src(N, vector<int>(N));
+    Matrix dst_naive(N, vector<int>(N, 0));
+    Matrix dst_blocked(N, vector<int>(N, 0));
+
     for (size_t i = 0; i < N; ++i) {
         for (size_t j = 0; j < N; ++j) {
             src[i][j] = static_cast<int>(i * N + j);
         }
     }
 
-    std::cout << "Benchmarking Matrix Transposition (" << N << " x " << N << ")...\n";
+    cout << "Benchmarking Matrix Transposition (" << N << " x " << N << ")...\n";
 
-    //// 1. Benchmark Naive Transpose
     auto runNaive = [&]() {
-        naiveTranspose(src, dst_naive, N);
+        naive_transpose(src, dst_naive, N);
         };
-    timeIt("Naive Transpose", runNaive, iters);
+    timeIt("Naive Transpose", runNaive, iters, printout, prec);
 
-    // 2. Benchmark Blocked Transpose
     auto runBlocked = [&]() {
-        blockedTranspose(src, dst_blocked, N);
+        blocked_transpose(src, dst_blocked, N);
         };
-    timeIt("Blocked Transpose", runBlocked, iters);
+    timeIt("Blocked Transpose", runBlocked, iters, printout, prec);
 
     return 0;
 }

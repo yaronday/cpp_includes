@@ -23,27 +23,30 @@
 
 #pragma once
 
-#include <iostream>
-#include <chrono>
 #include <string>
+#include "logger.hpp"
 
 
-// scale and format the time measurement
-inline std::pair<double, std::string> time_scaler(double time_res) {
-    std::string time_unit = " [s]";
-    if (time_res < 0.5 && time_res > 1e-3) {
-        time_res *= 1e3;
-        time_unit = " [ms]";
+struct TimeResult {
+    double value;
+    std::string_view unit;
+};
+
+// scale and format the time measurement smoothly with zero heap allocations
+inline TimeResult time_scaler(double time_res) {
+    if (time_res <= 0.5 && time_res > 1e-3) {
+        return { time_res * 1e3, " [ms]" };
     }
-    else if (time_res < 1e-3 && time_res > 1e-6) {
-        time_res *= 1e6;
-        time_unit = " [us]";
+    if (time_res <= 1e-3 && time_res > 1e-6) {
+        return { time_res * 1e6, " [us]" };
     }
-    else if (time_res < 1e-6 && time_res > 1e-9) {
-        time_res *= 1e9;
-        time_unit = " [ns]";
+    if (time_res <= 1e-6 && time_res > 1e-9) {
+        return { time_res * 1e9, " [ns]" };
     }
-    return { time_res, time_unit };
+    if (time_res <= 1e-9) {
+        return { time_res * 1e12, " [ps]" };
+    }
+    return { time_res, " [s]" };
 }
 
  
@@ -58,17 +61,25 @@ inline std::pair<double, std::string> time_scaler(double time_res) {
     timeIt("matTranspose", func, 10);
 */
 template <typename Func>
-void timeIt(const std::string &funcName, Func &&func, int numIters = 100) {
+void timeIt(const std::string &func_name, Func &&func, uint16_t num_iters = 100, bool printout = false, uint16_t precision = 4) {
     
     auto start = std::chrono::steady_clock::now();
-    for (int i = 0; i < numIters; i++) {
-        func();  // Execute the code block (lambda or callable) 
+    for (uint16_t i = 0; i < num_iters; ++i) {
+        // Enforce perfect forwarding on the callable to eliminate invocation/copy penalties
+        std::forward<Func>(func)();  
     }
     auto end = std::chrono::steady_clock::now();
-    auto delta_time = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
-    std::pair<double, std::string> avgDuration = time_scaler(delta_time.count() / numIters);
+    
+    std::chrono::duration<double> delta_time = end - start;
+    auto [avg_value, time_unit] = time_scaler(delta_time.count() / num_iters);
 
-    std::cout << "\n\nFunction or code section '" << 
-        funcName << "' took " << avgDuration.first << avgDuration.second 
-        << "\nin average over " << numIters << " iterations." << std::endl;
+    const std::string fmt_spec = std::format("'{{}}' took {{:.{}f}}{{}} in avg. over {{}} iterations.", precision);
+    const std::string msg = std::vformat(fmt_spec, std::make_format_args(func_name, avg_value, time_unit, num_iters));
+
+    if (printout) {
+        std::cout << msg << '\n';
+    } 
+    else {
+        LOG_INFO("{}", msg);
+    }
 }
