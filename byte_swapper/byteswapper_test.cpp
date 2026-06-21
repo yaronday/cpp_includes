@@ -20,10 +20,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
 */
-
-
-#include <cstdint>
-
 #include "byteswapper.hpp"
 
 // --- Unit Tests for byteswapper (endianity swap)---
