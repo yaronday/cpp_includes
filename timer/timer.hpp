@@ -66,7 +66,7 @@ inline TimeResult time_scaler(double time_res) {
     timeIt("matTranspose", func, 10);
 */
 template <typename Func>
-void timeIt(const std::string &func_name, Func &&func, uint16_t num_iters = 100, bool printout = false, uint16_t precision = 4) {
+void time_it(const std::string &func_name, Func &&func, uint16_t num_iters = 100, bool printout = false, uint8_t precision = 4) {
     
     auto start = std::chrono::steady_clock::now();
     for (uint16_t i = 0; i < num_iters; ++i) {
