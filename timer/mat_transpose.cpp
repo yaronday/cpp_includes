@@ -67,7 +67,7 @@ static void blocked_transpose(const Matrix& src, Matrix& dst, size_t N, size_t b
 // ---------------------------------------------------------
 int main() {
     constexpr size_t N = 1024 << 3; 
-    constexpr uint16_t iters = 10; 
+    constexpr uint16_t iters = 5; 
 
     constexpr bool printout = false; 
     constexpr uint16_t prec = 5; 
@@ -82,7 +82,8 @@ int main() {
         }
     }
 
-    cout << "Benchmarking Matrix Transposition (" << N << " x " << N << ")...\n";
+    const string header_msg = format("Benchmarking Matrix Transposition ({} x {})...", N, N);
+    print_header(header_msg, printout);
 
     auto runNaive = [&]() {
         naive_transpose(src, dst_naive, N);

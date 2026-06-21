@@ -83,3 +83,12 @@ void timeIt(const std::string &func_name, Func &&func, uint16_t num_iters = 100,
         LOG_INFO("{}", msg);
     }
 }
+
+inline void print_header(std::string_view message, bool printout = false) {
+    if (printout) {
+        std::cout << message << '\n';
+    }
+    else {
+        LOG_INFO("{}", message);
+    }
+}
