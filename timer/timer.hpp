@@ -32,6 +32,11 @@ struct TimeResult {
     std::string_view unit;
 };
 
+
+inline void print_header(std::string_view msg, bool printout = false) {
+    printout ? (std::cout << msg << '\n') : (LOG_INFO("{}", msg), std::cout);
+}
+
 // scale and format the time measurement smoothly with zero heap allocations
 inline TimeResult time_scaler(double time_res) {
     if (time_res <= 0.5 && time_res > 1e-3) {
@@ -76,19 +81,6 @@ void timeIt(const std::string &func_name, Func &&func, uint16_t num_iters = 100,
     const std::string fmt_spec = std::format("'{{}}' took {{:.{}f}}{{}} in avg. over {{}} iterations.", precision);
     const std::string msg = std::vformat(fmt_spec, std::make_format_args(func_name, avg_value, time_unit, num_iters));
 
-    if (printout) {
-        std::cout << msg << '\n';
-    } 
-    else {
-        LOG_INFO("{}", msg);
-    }
+    printout ? (std::cout << msg << '\n') : (LOG_INFO("{}", msg), std::cout);
 }
 
-inline void print_header(std::string_view message, bool printout = false) {
-    if (printout) {
-        std::cout << message << '\n';
-    }
-    else {
-        LOG_INFO("{}", message);
-    }
-}
