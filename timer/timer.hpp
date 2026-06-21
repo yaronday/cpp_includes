@@ -26,6 +26,8 @@
 #include <string>
 #include "logger.hpp"
 
+#include <utility>
+
 
 struct TimeResult {
     double value;
@@ -34,11 +36,20 @@ struct TimeResult {
 
 
 inline void print_header(std::string_view msg, bool printout = false) {
-    printout ? (std::cout << msg << '\n') : (LOG_INFO("{}", msg), std::cout);
+    if (printout) {
+        std::cout << msg << '\n'; 
+    }
+    else {
+        LOG_INFO("{}", msg);
+    }
 }
 
 // scale and format the time measurement smoothly with zero heap allocations
-inline TimeResult time_scaler(double time_res) {
+inline constexpr TimeResult time_scaler(double time_res) {
+    if (time_res != time_res || time_res < 0.0) {
+        return { 0.0, " [err]" };
+    }
+
     if (time_res <= 0.5 && time_res > 1e-3) {
         return { time_res * 1e3, " [ms]" };
     }
@@ -67,11 +78,21 @@ inline TimeResult time_scaler(double time_res) {
 */
 template <typename Func>
 void time_it(const std::string &func_name, Func &&func, uint16_t num_iters = 100, bool printout = false, uint8_t precision = 4) {
+
+    if (num_iters == 0) {
+        const std::string err_msg = std::format("Error: '{}' benchmark aborted. num_iters cannot be 0.", func_name);
+        if (printout) {
+            std::cout << err_msg << '\n';
+        }
+        else {
+            LOG_ERR("{}", err_msg);
+        }
+        return;
+    }
     
     auto start = std::chrono::steady_clock::now();
     for (uint16_t i = 0; i < num_iters; ++i) {
-        // Enforce perfect forwarding on the callable to eliminate invocation/copy penalties
-        std::forward<Func>(func)();  
+        func();  
     }
     auto end = std::chrono::steady_clock::now();
     
@@ -81,6 +102,11 @@ void time_it(const std::string &func_name, Func &&func, uint16_t num_iters = 100
     const std::string fmt_spec = std::format("'{{}}' took {{:.{}f}}{{}} in avg. over {{}} iterations.", precision);
     const std::string msg = std::vformat(fmt_spec, std::make_format_args(func_name, avg_value, time_unit, num_iters));
 
-    printout ? (std::cout << msg << '\n') : (LOG_INFO("{}", msg), std::cout);
+    if (printout) {
+        std::cout << msg << '\n';
+    }
+    else {
+        LOG_INFO("{}", msg);
+    }
 }
 
