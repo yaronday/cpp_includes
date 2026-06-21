@@ -23,27 +23,46 @@
 
 #pragma once
 
-#include <iostream>
-#include <chrono>
 #include <string>
+#include "logger.hpp"
+
+#include <utility>
 
 
-// scale and format the time measurement
-inline std::pair<double, std::string> time_scaler(double time_res) {
-    std::string time_unit = " [s]";
-    if (time_res < 0.5 && time_res > 1e-3) {
-        time_res *= 1e3;
-        time_unit = " [ms]";
+struct TimeResult {
+    double value;
+    std::string_view unit;
+};
+
+
+inline void print_header(std::string_view msg, bool printout = false) {
+    if (printout) {
+        std::cout << msg << '\n'; 
     }
-    else if (time_res < 1e-3 && time_res > 1e-6) {
-        time_res *= 1e6;
-        time_unit = " [us]";
+    else {
+        LOG_INFO("{}", msg);
     }
-    else if (time_res < 1e-6 && time_res > 1e-9) {
-        time_res *= 1e9;
-        time_unit = " [ns]";
+}
+
+// scale and format the time measurement smoothly with zero heap allocations
+inline constexpr TimeResult time_scaler(double time_res) {
+    if (time_res != time_res || time_res < 0.0) {
+        return { 0.0, " [err]" };
     }
-    return { time_res, time_unit };
+
+    if (time_res <= 0.5 && time_res > 1e-3) {
+        return { time_res * 1e3, " [ms]" };
+    }
+    if (time_res <= 1e-3 && time_res > 1e-6) {
+        return { time_res * 1e6, " [us]" };
+    }
+    if (time_res <= 1e-6 && time_res > 1e-9) {
+        return { time_res * 1e9, " [ns]" };
+    }
+    if (time_res <= 1e-9) {
+        return { time_res * 1e12, " [ps]" };
+    }
+    return { time_res, " [s]" };
 }
 
  
@@ -58,17 +77,36 @@ inline std::pair<double, std::string> time_scaler(double time_res) {
     timeIt("matTranspose", func, 10);
 */
 template <typename Func>
-void timeIt(const std::string &funcName, Func &&func, int numIters = 100) {
+void time_it(const std::string &func_name, Func &&func, uint16_t num_iters = 100, bool printout = false, uint8_t precision = 4) {
+
+    if (num_iters == 0) {
+        const std::string err_msg = std::format("Error: '{}' benchmark aborted. num_iters cannot be 0.", func_name);
+        if (printout) {
+            std::cout << err_msg << '\n';
+        }
+        else {
+            LOG_ERR("{}", err_msg);
+        }
+        return;
+    }
     
     auto start = std::chrono::steady_clock::now();
-    for (int i = 0; i < numIters; i++) {
-        func();  // Execute the code block (lambda or callable) 
+    for (uint16_t i = 0; i < num_iters; ++i) {
+        func();  
     }
     auto end = std::chrono::steady_clock::now();
-    auto delta_time = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
-    std::pair<double, std::string> avgDuration = time_scaler(delta_time.count() / numIters);
+    
+    std::chrono::duration<double> delta_time = end - start;
+    auto [avg_value, time_unit] = time_scaler(delta_time.count() / num_iters);
 
-    std::cout << "\n\nFunction or code section '" << 
-        funcName << "' took " << avgDuration.first << avgDuration.second 
-        << "\nin average over " << numIters << " iterations." << std::endl;
+    const std::string fmt_spec = std::format("'{{}}' took {{:.{}f}}{{}} in avg. over {{}} iterations.", precision);
+    const std::string msg = std::vformat(fmt_spec, std::make_format_args(func_name, avg_value, time_unit, num_iters));
+
+    if (printout) {
+        std::cout << msg << '\n';
+    }
+    else {
+        LOG_INFO("{}", msg);
+    }
 }
+
