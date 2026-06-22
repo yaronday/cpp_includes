@@ -22,7 +22,7 @@
 */
 #include "byteswapper.hpp"
 
-// --- Unit Tests for byteswapper (endianity swap)---
+// --- Unit Tests for byteswapper (endianity swap) ---
 
 // 8-bit tests
 static_assert(byteswapper(static_cast<uint8_t>(0x00)) == 0x00, "8-bit zero failed");
