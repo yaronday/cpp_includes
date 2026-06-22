@@ -26,6 +26,7 @@
 #pragma once 
 #include <cstdint>
 
+// byteswapper (endianity swap), especially useful for versions older than C++20, where byteswap is unavailable
 
 static constexpr uint8_t byteswapper(uint8_t v) {
 	return v;

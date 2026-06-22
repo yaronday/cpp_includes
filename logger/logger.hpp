@@ -54,11 +54,11 @@ public:
         const std::time_t time_t_now = std::chrono::system_clock::to_time_t(now);
         std::tm tm_now{};
 
-    #ifdef _WIN32
-        localtime_s(&tm_now, &time_t_now);
-    #else
-        localtime_r(&time_t_now, &tm_now);
-    #endif
+        #ifdef _WIN32
+            localtime_s(&tm_now, &time_t_now);
+        #else
+            localtime_r(&time_t_now, &tm_now);
+        #endif
 
         char time_buf[20];
         std::strftime(time_buf, sizeof(time_buf), "%Y-%m-%d %H:%M:%S", &tm_now);
@@ -83,4 +83,4 @@ public:
 
 #define LOG_INFO(fmt, ...)  Logger::log(Logger::Level::INFO, fmt, __VA_ARGS__)
 #define LOG_WARN(fmt, ...)  Logger::log(Logger::Level::WARN, fmt, __VA_ARGS__)
-#define LOG_ERR(fmt, ...)   Logger::log(Logger::Level::ERROR, fmt, __VA_ARGS__)
+#define LOG_ERROR(fmt, ...)   Logger::log(Logger::Level::ERROR, fmt, __VA_ARGS__)
