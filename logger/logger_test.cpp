@@ -4,32 +4,37 @@
 #include <string>
 #include <filesystem>
 
-namespace logger::unittests {
+namespace logger::unittests
+{
 
     // RAII helper to intercept cout into a local stringstream.
-    struct RedirectConsole {
+    struct RedirectConsole
+    {
         std::stringstream ss;
-        std::streambuf* old_buf;
-    
+        std::streambuf *old_buf;
+
         RedirectConsole() : old_buf(std::cout.rdbuf(ss.rdbuf())) {}
         ~RedirectConsole() { std::cout.rdbuf(old_buf); }
-    
+
         std::string str() const { return ss.str(); }
     };
 
-    static std::string read_file_content(const std::filesystem::path& filepath) {
+    static std::string read_file_content(const std::filesystem::path &filepath)
+    {
         std::ifstream file(filepath);
-        if (!file.is_open()) return "";
+        if (!file.is_open())
+            return "";
         std::stringstream buffer;
         buffer << file.rdbuf();
         return buffer.str();
     }
 
-    static void run_logger_tests() {
+    static void run_logger_tests()
+    {
         std::cout << "Running logger subsystem tests...\n";
 
         const std::filesystem::path test_log_path = "test_execution.log";
-    
+
         // Clean up any lingering test logs from a previous crashed run
         std::filesystem::remove(test_log_path);
 
@@ -60,15 +65,17 @@ namespace logger::unittests {
             constexpr int logs_per_thread = 50;
             std::vector<std::thread> workers;
 
-            for (int i = 0; i < num_threads; ++i) {
-                workers.emplace_back([i, logs_per_thread]() {
+            for (int i = 0; i < num_threads; ++i)
+            {
+                workers.emplace_back([i, logs_per_thread]()
+                                     {
                     for (int j = 0; j < logs_per_thread; ++j) {
                         LOG_INFO("Thread #{} reporting loop iteration metric sequence token: {}", i, j);
-                    }
-                });
+                    } });
             }
 
-            for (auto& worker : workers) {
+            for (auto &worker : workers)
+            {
                 worker.join();
             }
 
@@ -76,8 +83,10 @@ namespace logger::unittests {
             std::ifstream file(test_log_path);
             std::string line;
             int total_lines = 0;
-            while (std::getline(file, line)) {
-                if (line.find("reporting loop iteration") != std::string::npos) {
+            while (std::getline(file, line))
+            {
+                if (line.find("reporting loop iteration") != std::string::npos)
+                {
                     total_lines++;
                 }
             }
@@ -91,7 +100,7 @@ namespace logger::unittests {
         // =========================================================================
         {
             // Verify that the engine doesn't crash on empty formats, raw braces, or escaped symbols
-            LOG_INFO(""); 
+            LOG_INFO("");
             LOG_WARN("{} {} {} !!!", "@#$", "{}", "\n");
 
             std::string log_contents = read_file_content(test_log_path);
@@ -105,7 +114,8 @@ namespace logger::unittests {
 
 }
 
-int main() {
-    logger::unittests::run_logger_tests(); 
-    return 0; 
+int main()
+{
+    logger::unittests::run_logger_tests();
+    return 0;
 }

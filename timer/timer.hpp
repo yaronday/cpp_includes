@@ -19,42 +19,46 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
-*/
+ */
 
 #pragma once
 
 #include <string>
 #include "../logger/logger.hpp"
 
-
-struct TimeResult {
+struct TimeResult
+{
     double value;
     std::string_view unit;
 };
 
-
 // scale and format the time measurement smoothly with zero heap allocations
-inline constexpr TimeResult time_scaler(double time_res) {
-    if (time_res != time_res || time_res < 0.0) {
-        return { 0.0, " [err]" };
+inline constexpr TimeResult time_scaler(double time_res)
+{
+    if (time_res != time_res || time_res < 0.0)
+    {
+        return {0.0, " [err]"};
     }
 
-    if (time_res <= 0.5 && time_res > 1e-3) {
-        return { time_res * 1e3, " [ms]" };
+    if (time_res <= 0.5 && time_res > 1e-3)
+    {
+        return {time_res * 1e3, " [ms]"};
     }
-    if (time_res <= 1e-3 && time_res > 1e-6) {
-        return { time_res * 1e6, " [us]" };
+    if (time_res <= 1e-3 && time_res > 1e-6)
+    {
+        return {time_res * 1e6, " [us]"};
     }
-    if (time_res <= 1e-6 && time_res > 1e-9) {
-        return { time_res * 1e9, " [ns]" };
+    if (time_res <= 1e-6 && time_res > 1e-9)
+    {
+        return {time_res * 1e9, " [ns]"};
     }
-    if (time_res <= 1e-9) {
-        return { time_res * 1e12, " [ps]" };
+    if (time_res <= 1e-9)
+    {
+        return {time_res * 1e12, " [ps]"};
     }
-    return { time_res, " [s]" };
+    return {time_res, " [s]"};
 }
 
- 
 /* Measure time of a code block using a lambda or any callable
 *  Example:
     // Define the lambda to wrap the function call
@@ -66,36 +70,42 @@ inline constexpr TimeResult time_scaler(double time_res) {
     timeIt("matTranspose", func, 10);
 */
 template <typename Func>
-void time_it(const std::string &func_name, Func &&func, uint16_t num_iters = 100, bool printout = false, uint8_t precision = 4) {
+void time_it(const std::string &func_name, Func &&func, uint16_t num_iters = 100, bool printout = false, uint8_t precision = 4)
+{
 
-    if (num_iters == 0) {
+    if (num_iters == 0)
+    {
         const std::string err_msg = std::format("Error: '{}' benchmark aborted. num_iters cannot be 0.", func_name);
-        if (printout) {
+        if (printout)
+        {
             std::cerr << err_msg << '\n';
         }
-        else {
+        else
+        {
             LOG_ERROR("{}", err_msg);
         }
         return;
     }
-    
+
     auto start = std::chrono::steady_clock::now();
-    for (uint16_t i = 0; i < num_iters; ++i) {
-        func();  
+    for (uint16_t i = 0; i < num_iters; ++i)
+    {
+        func();
     }
     auto end = std::chrono::steady_clock::now();
-    
+
     std::chrono::duration<double> delta_time = end - start;
     auto [avg_value, time_unit] = time_scaler(delta_time.count() / num_iters);
 
     const std::string fmt_spec = std::format("'{{}}' took {{:.{}f}}{{}} in avg. over {{}} iterations.", precision);
     const std::string msg = std::vformat(fmt_spec, std::make_format_args(func_name, avg_value, time_unit, num_iters));
 
-    if (printout) {
+    if (printout)
+    {
         std::cout << msg << '\n';
     }
-    else {
+    else
+    {
         LOG_INFO("{}", msg);
     }
 }
-
