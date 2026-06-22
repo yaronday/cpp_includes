@@ -1,5 +1,5 @@
-#include "timer.hpp"
 #include <cassert>
+#include "timer.hpp"
 
 
 namespace timer::unittests {
@@ -67,7 +67,7 @@ namespace timer::unittests {
     static_assert(run_compile_time_tests(), "Unit Test Failure: timer.hpp math logic or threshold ranges collapsed!");
 
     static void run_runtime_tests() {
-        std::cout << "Running timer runtime tests...\n";
+        std::cout << "Running timer runtime tests...\n\n";
 
         // --- Test Case 1: Execution Count Precision ---
         {
@@ -107,7 +107,12 @@ namespace timer::unittests {
             assert(!lambda_executed && "Failure: time_it executed a lambda even when num_iters was 0!");
         }
 
-        std::cout << "All runtime tests passed successfully!\n";
+        std::cout << "\nAll runtime tests passed successfully!\n";
     }
 
 } // namespace timer::unittests
+
+int main() {
+    timer::unittests::run_runtime_tests();
+    return 0; 
+}

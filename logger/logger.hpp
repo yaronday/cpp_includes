@@ -83,4 +83,4 @@ public:
 
 #define LOG_INFO(fmt, ...)  Logger::log(Logger::Level::INFO, fmt, __VA_ARGS__)
 #define LOG_WARN(fmt, ...)  Logger::log(Logger::Level::WARN, fmt, __VA_ARGS__)
-#define LOG_ERR(fmt, ...)   Logger::log(Logger::Level::ERROR, fmt, __VA_ARGS__)
+#define LOG_ERROR(fmt, ...)   Logger::log(Logger::Level::ERROR, fmt, __VA_ARGS__)

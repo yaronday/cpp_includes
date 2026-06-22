@@ -24,9 +24,7 @@
 #pragma once
 
 #include <string>
-#include "logger.hpp"
-
-#include <utility>
+#include "../logger/logger.hpp"
 
 
 struct TimeResult {
@@ -34,15 +32,6 @@ struct TimeResult {
     std::string_view unit;
 };
 
-
-inline void print_header(std::string_view msg, bool printout = false) {
-    if (printout) {
-        std::cout << msg << '\n'; 
-    }
-    else {
-        LOG_INFO("{}", msg);
-    }
-}
 
 // scale and format the time measurement smoothly with zero heap allocations
 inline constexpr TimeResult time_scaler(double time_res) {
@@ -82,10 +71,10 @@ void time_it(const std::string &func_name, Func &&func, uint16_t num_iters = 100
     if (num_iters == 0) {
         const std::string err_msg = std::format("Error: '{}' benchmark aborted. num_iters cannot be 0.", func_name);
         if (printout) {
-            std::cout << err_msg << '\n';
+            std::cerr << err_msg << '\n';
         }
         else {
-            LOG_ERR("{}", err_msg);
+            LOG_ERROR("{}", err_msg);
         }
         return;
     }

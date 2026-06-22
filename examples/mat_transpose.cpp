@@ -21,9 +21,9 @@
  * SOFTWARE.
 */
 
-#include "timer.hpp" 
 #include <vector>
 #include <cassert>
+#include "../timer/timer.hpp" 
 
 
 using namespace std; 
@@ -31,6 +31,24 @@ using namespace std;
 
 using Matrix = vector<vector<int>>;
 
+
+inline void display_msg(std::string_view msg, bool printout = false) {
+    if (printout) {
+        std::cout << msg << '\n';
+    }
+    else {
+        LOG_INFO("{}", msg);
+    }
+}
+
+inline void display_error(std::string_view msg, bool printout = false) {
+    if (printout) {
+        std::cerr << msg << '\n';
+    }
+    else {
+        LOG_ERROR("{}", msg);
+    }
+}
 
 template <size_t Start, size_t End, typename F>
 inline constexpr void compile_time_for(F&& f) {
@@ -117,7 +135,7 @@ static bool verify_matrices(const Matrix& mat_a, const Matrix& mat_b) {
 // Main Execution & Benchmarking
 // ---------------------------------------------------------
 int main() {
-    constexpr size_t N = 1024 << 3;
+    constexpr size_t N = 512 << 3;
     constexpr uint16_t iters = 3; 
 
     constexpr bool printout = false; 
@@ -135,7 +153,7 @@ int main() {
     }
 
     const string header_msg = format("Benchmarking Matrix Transposition ({} x {})...", N, N);
-    print_header(header_msg, printout);
+    display_msg(header_msg, printout);
 
     auto runNaive = [&]() {
         naive_transpose(src, dst_naive, N);
@@ -154,10 +172,10 @@ int main() {
     time_it("Blocked Transpose2", runBlocked2, iters, printout, prec);
 
     if (verify_matrices(dst_naive, dst_blocked1) && verify_matrices(dst_naive, dst_blocked2)) {
-        cout << "\n[SUCCESS] Matrices match perfectly!\n";
+        display_msg("[SUCCESS] Matrices match perfectly!\n", printout);
     }
     else {
-        cerr << "\n[ERROR] Matrix mismatch detected! Optimization logic is flawed.\n";
+        display_error("[ERROR] Matrix mismatch detected!Optimization logic is flawed.\n", printout);
     }
 
     return 0;
